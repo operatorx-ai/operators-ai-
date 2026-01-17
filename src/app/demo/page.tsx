@@ -1,9 +1,12 @@
 "use client";
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+const DemoChat = dynamic(() => import("./DemoChat"), { ssr: false });
 
 const quickActions = [
   "Draft a vendor payment approval workflow",
@@ -15,6 +18,7 @@ const quickActions = [
 
 export default function DemoPage() {
   const [mode, setMode] = useState("assistant");
+  const [quickInput, setQuickInput] = useState("");
   return (
     <main className="max-w-3xl mx-auto py-16 px-4">
       <motion.h1
@@ -38,12 +42,20 @@ export default function DemoPage() {
         transition={{ duration: 0.7, delay: 0.1 }}
       >
         {quickActions.map((q) => (
-          <Button key={q} variant="secondary" className="text-xs">{q}</Button>
+          <Button
+            key={q}
+            variant="secondary"
+            className="text-xs"
+            onClick={() => setQuickInput(q)}
+            aria-label={`Quick action: ${q}`}
+          >
+            {q}
+          </Button>
         ))}
       </motion.div>
       <Card className="bg-accent p-6 rounded shadow text-center mb-4">
         <p className="mb-4">Demo outputs are suggestions; verify before action.</p>
-        <p className="text-gray-400">[Streaming chat demo coming soon]</p>
+        <DemoChat key={mode} mode={mode} quickInput={quickInput} setQuickInput={setQuickInput} />
       </Card>
     </main>
   );
