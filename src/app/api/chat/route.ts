@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
 
   // Privacy-first: do not store chat logs by default. TODO: add opt-in logging hook here.
 
+  const MODEL = process.env.OPENAI_MODEL ?? 'gpt-5';
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       Authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: "gpt-4",
+      model: MODEL,
       messages,
       stream: true
     })

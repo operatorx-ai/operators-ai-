@@ -3,10 +3,11 @@ import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-interface Message {
-  role: "user" | "assistant";
+type Role = 'user' | 'assistant';
+type Message = {
+  role: Role;
   content: string;
-}
+};
 
 export default function DemoChat({ mode, quickInput, setQuickInput }: { mode: string; quickInput?: string; setQuickInput?: (v: string) => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,7 +26,7 @@ export default function DemoChat({ mode, quickInput, setQuickInput }: { mode: st
   const sendMessage = async (content: string) => {
     setLoading(true);
     setError(null);
-    const newMessages = [...messages, { role: "user", content }];
+    const newMessages: Message[] = [...messages, { role: 'user' as const, content }];
     setMessages(newMessages);
     setInput("");
     try {
@@ -49,8 +50,8 @@ export default function DemoChat({ mode, quickInput, setQuickInput }: { mode: st
         if (done) break;
         aiMsg += decoder.decode(value, { stream: true });
         setMessages((msgs) => [
-          ...msgs.filter((m, i) => i !== msgs.length - 1 || m.role !== "assistant"),
-          { role: "assistant", content: aiMsg },
+          ...msgs.filter((m, i) => i !== msgs.length - 1 || m.role !== 'assistant'),
+          { role: 'assistant' as const, content: aiMsg },
         ]);
       }
       setLoading(false);
