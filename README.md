@@ -1,67 +1,40 @@
-# Operators-AI-
-# Operators-AI: World-Class AI Automation Platform
+# Operators-AI
 
-## Overview
-Operators-AI is a premium, human-first multi-agent automation platform. This repository contains the marketing site, interactive OpenAI demo, Trust Center, and all supporting code for launch.
+World-class AI automation platform for human-first, compliant automation.
 
-## Features
-- Next.js 14 (App Router) + TypeScript
-- TailwindCSS + shadcn/ui (Radix)
-- Framer Motion animations
-- OpenAI API streaming chat demo
-- Zod + React Hook Form validation
-- Rate limiting on /api routes
-- SEO: metadata, OG images, sitemap.xml, robots.txt
-- Tests: Vitest (unit) + Playwright (smoke)
-- CI: GitHub Actions (lint/typecheck/test/build) + CodeQL + Dependabot
-- Security headers + CSP baseline
+## Setup
 
-## Getting Started
-
-### 1. Install dependencies
-```bash
-npm install
-```
-
-### 2. Set up environment variables
-Copy `.env.example` to `.env` and add your OpenAI API key:
-```bash
-cp .env.example .env
-# Edit .env and set OPENAI_API_KEY
-```
-
-### 3. Run the development server
-```bash
-npm run dev
-```
-
-### 4. Run tests
-```bash
-npm run test     # Vitest unit tests
-npm run test:e2e # Playwright smoke tests
-```
-
-### 5. Build for production
-```bash
-npm run build
-```
+1. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+2. **Configure environment:**
+   - Copy `.env.example` to `.env.local` and add your `OPENAI_API_KEY`.
+3. **Run locally:**
+   ```sh
+   npm run dev
+   ```
 
 ## Deployment
-- Recommended: [Vercel](https://vercel.com/)
-- Set all required environment variables in Vercel dashboard
 
-## Security & Compliance
-- Security headers and CSP are set in `next.config.js`
-- No chat logs are stored by default (privacy-first)
-- See `/trust` for Trust Center and compliance approach
+- Deploy to [Vercel](https://vercel.com/) for best experience.
+- Set `OPENAI_API_KEY` in Vercel project settings.
 
-## Insert Your Keys
-- Add your OpenAI API key in `.env` as `OPENAI_API_KEY`
+## Tech Stack
+- Next.js (App Router, TypeScript)
+- TailwindCSS
+- shadcn/ui (Radix)
+- Framer Motion
+- OpenAI API (server-side only)
+- Zod, React Hook Form
+- Vitest, Playwright
+- GitHub Actions, CodeQL, Dependabot
 
 ## Notes
-- All code lives at the repo root (no nested app folder)
-- Extend config files in `src/config/` to add industries, agents, or pricing plans
-- For production, review and update security, privacy, and compliance disclaimers
+- All code is at repo root (no nested project folder).
+- Insert your OpenAI API key in `.env.local`.
+- No chat logs are stored by default (privacy-first).
+- See `/src/config/` for pricing, industries, and agent catalog configs.
 
 ---
 
