@@ -1,3 +1,4 @@
+"use client";
 import { agents } from "@/config/agents";
 import { industries } from "@/config/industries";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,6 @@ export default function Home() {
           <Link href="/contact"><Button variant="outline" size="lg">Contact Sales</Button></Link>
         </div>
       </motion.section>
-
       {/* Agent Catalog */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}
@@ -58,7 +58,6 @@ export default function Home() {
           ))}
         </div>
       </motion.section>
-
       {/* Industries */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}
@@ -81,7 +80,6 @@ export default function Home() {
           ))}
         </div>
       </motion.section>
-
       {/* How it works */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}
@@ -102,7 +100,6 @@ export default function Home() {
           ))}
         </div>
       </motion.section>
-
       {/* Trust & Security */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}
@@ -121,7 +118,6 @@ export default function Home() {
         </ul>
         <Link href="/trust"><Button variant="secondary" className="mt-6">Learn More</Button></Link>
       </motion.section>
-
       {/* Human-first automation statement */}
       <motion.section
         initial={{ opacity: 0, y: 40 }}

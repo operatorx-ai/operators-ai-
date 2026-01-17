@@ -12,7 +12,7 @@ const rateLimitMap = new Map<string, { count: number; last: number }>();
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
   const now = Date.now();
   const rl = rateLimitMap.get(ip) || { count: 0, last: now };
   if (now - rl.last > 60_000) {

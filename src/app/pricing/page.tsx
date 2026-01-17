@@ -1,3 +1,4 @@
+"use client";
 import { pricingTiers } from "@/config/pricing";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
