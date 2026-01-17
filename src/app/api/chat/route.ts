@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 
 const chatSchema = z.object({
@@ -8,6 +8,8 @@ const chatSchema = z.object({
 
 const RATE_LIMIT = 5; // 5 requests per minute per IP (simple in-memory, for demo)
 const rateLimitMap = new Map<string, { count: number; last: number }>();
+
+export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
   rl.count++;
   rateLimitMap.set(ip, rl);
   if (rl.count > RATE_LIMIT) {
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+    return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429 });
   }
 
   let body;
@@ -28,12 +30,45 @@ export async function POST(req: NextRequest) {
     body = await req.json();
     chatSchema.parse(body);
   } catch (e) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400 });
   }
 
-  // TODO: Replace with OpenAI streaming (do not store logs by default)
-  // Add system prompt: "You are Operators-AI. Always require human approval. Never give legal advice."
-  return NextResponse.json({
-    reply: "[Demo] This is a placeholder for OpenAI streaming chat."
+  // --- OpenAI streaming ---
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: "OpenAI API key not set" }), { status: 500 });
+  }
+  const systemPrompt =
+    "You are Operators-AI. Always require human approval. Never give legal advice. Respond with clear, actionable steps and note that outputs are suggestions only.";
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...body.messages
+  ];
+
+  // Privacy-first: do not store chat logs by default. TODO: add opt-in logging hook here.
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages,
+      stream: true
+    })
+  });
+
+  if (!response.body) {
+    return new Response(JSON.stringify({ error: "No response from OpenAI" }), { status: 500 });
+  }
+
+  // Stream OpenAI response to client
+  return new Response(response.body, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache"
+    }
   });
 }

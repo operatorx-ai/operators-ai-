@@ -21,20 +21,20 @@ export const pricingTiers = {
   },
   business: {
     name: "Business",
-    implementationFee: 5000,
-    installments: 4,
+    implementationFeeOneTime: 5000,
     plans: [
-      { name: "Business Standard", price: "$499/mo", features: ["All Personal features", "Custom integrations", "Audit logs", "SLA"] },
-      { name: "Business Plus", price: "$999/mo", features: ["All Standard features", "Dedicated support", "Custom compliance"] },
+      { name: "Starter", price: "$499/mo", features: ["All Personal features", "Custom integrations", "Audit logs", "SLA"] },
+      { name: "Growth", price: "$999/mo", features: ["All Starter features", "Advanced analytics", "Priority support"] },
+      { name: "Enterprise", price: "$1,999/mo", features: ["All Growth features", "Custom compliance", "Dedicated account manager"] },
     ],
   },
   government: {
     name: "Government",
-    implementationFee: 10000,
-    installments: 4,
+    implementationFeeOneTime: 10000,
     plans: [
-      { name: "Gov Standard", price: "$1,999/mo", features: ["All Business features", "FedRAMP path language", "Custom audit trails"] },
-      { name: "Gov Plus", price: "$3,999/mo", features: ["All Standard features", "Dedicated compliance team", "Custom controls"] },
+      { name: "Starter", price: "$1,999/mo", features: ["All Business features", "FedRAMP path language", "Custom audit trails"] },
+      { name: "Growth", price: "$3,999/mo", features: ["All Starter features", "Dedicated compliance team", "Custom controls"] },
+      { name: "Enterprise", price: "$7,999/mo", features: ["All Growth features", "Custom SLAs", "Government onboarding"] },
     ],
   },
 };

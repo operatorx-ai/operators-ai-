@@ -15,6 +15,21 @@ World-class AI automation platform for human-first, compliant automation.
    npm run dev
    ```
 
+## Testing
+
+- **Lint:**
+  ```sh
+  npm run lint
+  ```
+- **Unit tests (Vitest):**
+  ```sh
+  npm run test
+  ```
+- **E2E tests (Playwright):**
+  ```sh
+  npx playwright test
+  ```
+
 ## Deployment
 
 - Deploy to [Vercel](https://vercel.com/) for best experience.

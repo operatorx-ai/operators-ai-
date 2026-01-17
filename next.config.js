@@ -12,9 +12,6 @@ const ContentSecurityPolicy = `
 
 module.exports = {
   reactStrictMode: true,
-  experimental: {
-    appDir: true,
-  },
   async headers() {
     return [
       {
