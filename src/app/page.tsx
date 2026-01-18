@@ -52,7 +52,7 @@ export default function Home() {
               <p className="text-zinc-300 mb-2 flex-1">{agent.description}</p>
               <div className="text-xs text-zinc-400 mb-2">Best for: {agent.bestFor.join(", ")}</div>
               <ul className="text-xs text-zinc-400 mb-2">
-                {agent.exampleTasks.map((t) => <li key={t}>• {t}</li>)}
+                {agent.examplePrompts.map((p) => <li key={p}>• {p}</li>)}
               </ul>
             </Card>
           ))}

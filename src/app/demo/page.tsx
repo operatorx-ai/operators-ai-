@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { agents } from "@/config/agents";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +21,8 @@ const quickActions = [
 export default function DemoPage() {
   const [mode, setMode] = useState("assistant");
   const [quickInput, setQuickInput] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState<string>(agents[0]?.id || "");
+  const selectedAgent = agents.find(a => a.id === selectedAgentId);
   return (
     <main className="max-w-3xl mx-auto py-16 px-4">
       <motion.h1
@@ -35,6 +39,30 @@ export default function DemoPage() {
           <TabsTrigger value="agent">Agent Mode</TabsTrigger>
         </TabsList>
       </Tabs>
+      {mode === "agent" && (
+        <div className="mb-6">
+          <label className="block mb-2 font-semibold">Select Agent</label>
+          <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose an agent" />
+            </SelectTrigger>
+            <SelectContent>
+              {agents.map(agent => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  {agent.name} <span className="text-xs text-muted-foreground">({agent.category})</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedAgent && (
+            <div className="mt-2 p-3 bg-muted rounded">
+              <div className="font-bold">{selectedAgent.name}</div>
+              <div className="text-sm mb-1">{selectedAgent.description}</div>
+              <div className="text-xs text-muted-foreground">Best for: {selectedAgent.bestFor.join(", ")}</div>
+            </div>
+          )}
+        </div>
+      )}
       <motion.div
         className="mb-8 flex flex-wrap gap-3"
         initial={{ opacity: 0, y: 40 }}
@@ -55,7 +83,13 @@ export default function DemoPage() {
       </motion.div>
       <Card className="bg-accent p-6 rounded shadow text-center mb-4">
         <p className="mb-4">Demo outputs are suggestions; verify before action.</p>
-        <DemoChat key={mode} mode={mode} quickInput={quickInput} setQuickInput={setQuickInput} />
+        <DemoChat
+          key={mode + selectedAgentId}
+          mode={mode}
+          quickInput={quickInput}
+          setQuickInput={setQuickInput}
+          agentId={mode === "agent" ? selectedAgentId : undefined}
+        />
       </Card>
     </main>
   );

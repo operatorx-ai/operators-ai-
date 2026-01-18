@@ -42,8 +42,8 @@ function Footer() {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-black text-white min-h-screen font-sans antialiased">
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <Nav />
         <div className="min-h-[80vh]">{children}</div>
         <Footer />

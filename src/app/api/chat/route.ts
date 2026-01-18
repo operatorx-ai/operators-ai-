@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
+import { agents } from "@/config/agents";
+
 const chatSchema = z.object({
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]).default("user"), content: z.string().min(1).max(2000) })),
-  mode: z.enum(["assistant", "agent"]).default("assistant")
+  mode: z.enum(["assistant", "agent"]).default("assistant"),
+  agentId: z.string().optional(),
 });
 
 const RATE_LIMIT = 5; // 5 requests per minute per IP (simple in-memory, for demo)
@@ -38,8 +41,14 @@ export async function POST(req: NextRequest) {
   if (!apiKey) {
     return new Response(JSON.stringify({ error: "OpenAI API key not set" }), { status: 500 });
   }
-  const systemPrompt =
+  let systemPrompt =
     "You are Operators-AI. Always require human approval. Never give legal advice. Respond with clear, actionable steps and note that outputs are suggestions only.";
+  if (body.mode === "agent" && body.agentId) {
+    const agent = agents.find(a => a.id === body.agentId);
+    if (agent) {
+      systemPrompt = agent.systemPrompt;
+    }
+  }
   const messages = [
     { role: "system", content: systemPrompt },
     ...body.messages
