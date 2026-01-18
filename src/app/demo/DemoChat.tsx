@@ -25,11 +25,13 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
   const [error, setError] = useState<string | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   // If quickInput is set, fill input and send
+
   if (quickInput && setQuickInput) {
     setTimeout(() => {
       setInput(quickInput);
       setQuickInput("");
     }, 0);
+  }
 
   const sendMessage = async (content: string) => {
     setLoading(true);
@@ -126,5 +128,4 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
       </form>
     </div>
   );
-}
 }
