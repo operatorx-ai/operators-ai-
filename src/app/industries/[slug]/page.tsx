@@ -2,8 +2,9 @@ import { industries, sectors } from "@/config/industries";
 import { agents } from "@/config/agents";
 import { notFound } from "next/navigation";
 
-export default function IndustryPage({ params }: { params: { slug: string } }) {
-  const industry = industries.find((i) => i.slug === params.slug);
+export default async function IndustryPage({ params }: { params: { slug: string } }) {
+  const { slug } = await params;
+  const industry = industries.find((i) => i.slug === slug);
   if (!industry) return notFound();
   const sector = sectors.find(s => s.id === industry.sectorId);
   return (

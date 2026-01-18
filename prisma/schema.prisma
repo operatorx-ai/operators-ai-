@@ -1,0 +1,65 @@
+// Prisma schema for Supabase Postgres + Clerk
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String
+  name        String?
+  createdAt   DateTime @default(now())
+  memberships Membership[]
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  type      OrgType
+  createdAt DateTime @default(now())
+  members   Membership[]
+  billing   Billing?
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  orgId     String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id])
+  org  Organization @relation(fields: [orgId], references: [id])
+
+  @@unique([userId, orgId])
+}
+
+model Billing {
+  id                   String   @id @default(cuid())
+  orgId                String   @unique
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  planKey              String?
+  status               String?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+enum OrgType {
+  PERSONAL
+  BUSINESS
+  GOVERNMENT
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}

@@ -26,9 +26,11 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
   const chatRef = useRef<HTMLDivElement>(null);
   // If quickInput is set, fill input and send
 
-  if (quickInput && setQuickInput) {
+  // If quickInput is set, fill input and send
+  if (quickInput && setQuickInput && !loading && !input) {
     setTimeout(() => {
       setInput(quickInput);
+      sendMessage(quickInput);
       setQuickInput("");
     }, 0);
   }

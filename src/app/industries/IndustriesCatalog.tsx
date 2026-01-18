@@ -10,7 +10,10 @@ import { useState } from "react";
 export default function IndustriesCatalog() {
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("");
-  const filtered = industries.filter((i) => {
+  // Defensive: filter out industries with invalid sectorId
+  const validSectorIds = new Set(sectors.map(s => s.id));
+  const allIndustries = industries.filter(i => validSectorIds.has(i.sectorId));
+  const filtered = allIndustries.filter((i) => {
     const q = query.toLowerCase();
     const matchesQuery =
       i.name.toLowerCase().includes(q) ||
@@ -50,6 +53,7 @@ export default function IndustriesCatalog() {
           ))}
         </select>
       </div>
+      <div className="mb-2 text-xs text-muted-foreground">{allIndustries.length} total industries</div>
       <div className="mb-4 text-sm text-muted-foreground">{filtered.length} results</div>
       <motion.div
         className="grid grid-cols-1 md:grid-cols-3 gap-8"
