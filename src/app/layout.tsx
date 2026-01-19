@@ -1,6 +1,9 @@
+
 import "../styles/globals.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ClerkProvider } from "@clerk/nextjs";
+import { WorkspaceProvider } from "@/lib/workspace";
 
 export const metadata = {
   title: "Operators-AI: Human-First Automation Platform",
@@ -42,12 +45,16 @@ function Footer() {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground font-sans antialiased">
-        <Nav />
-        <div className="min-h-[80vh]">{children}</div>
-        <Footer />
-      </body>
-    </html>
+    <ClerkProvider>
+      <WorkspaceProvider>
+        <html lang="en" className="dark" suppressHydrationWarning>
+          <body className="min-h-screen bg-background text-foreground font-sans antialiased">
+            <Nav />
+            <div className="min-h-[80vh]">{children}</div>
+            <Footer />
+          </body>
+        </html>
+      </WorkspaceProvider>
+    </ClerkProvider>
   );
 }
