@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import { UserButton } from "@clerk/nextjs";
 import { syncUserAndOrg } from "@/lib/user-sync";
 import { currentUser } from "@clerk/nextjs/server";

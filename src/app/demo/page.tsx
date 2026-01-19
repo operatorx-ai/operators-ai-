@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 const DemoChat = dynamic(() => import("./DemoChat"), { ssr: false });
+import { DemoSignUpCTA } from "./DemoSignUpCTA";
 
 const quickActions = [
   "Draft a vendor payment approval workflow",
@@ -90,6 +91,7 @@ export default function DemoPage() {
           setQuickInput={setQuickInput}
           agentId={mode === "agent" ? selectedAgentId : undefined}
         />
+        <DemoSignUpCTA />
       </Card>
     </main>
   );

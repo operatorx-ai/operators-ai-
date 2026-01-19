@@ -1,4 +1,4 @@
-import { prisma } from './db';
+import { prisma } from './prisma';
 
 export async function upsertUserByClerkId(clerkUserId: string, email: string, name: string) {
   return prisma.user.upsert({

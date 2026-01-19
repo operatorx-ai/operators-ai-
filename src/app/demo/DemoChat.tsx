@@ -23,6 +23,9 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fastMode, setFastMode] = useState(true);
+  const [isCached, setIsCached] = useState(false);
+  const [showExpand, setShowExpand] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   // If quickInput is set, fill input and send
 
@@ -35,17 +38,24 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
     }, 0);
   }
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, expand = false) => {
     setLoading(true);
     setError(null);
+    setIsCached(false);
+    setShowExpand(false);
     const newMessages: Message[] = [...messages, { role: 'user' as const, content }];
     setMessages(newMessages);
     setInput("");
+    // Show typing indicator instantly
+    setMessages((msgs) => [
+      ...newMessages,
+      { role: 'assistant', content: '' },
+    ]);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages, mode, agentId }),
+        body: JSON.stringify({ messages: newMessages, mode, agentId, fastMode, expand }),
       });
       if (!res.body) throw new Error("No response body");
       if (!res.ok) {
@@ -61,6 +71,7 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
         setLoading(false);
         return;
       }
+      setIsCached(res.headers.get('x-cached') === '1');
       let aiMsg = "";
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -68,11 +79,16 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
         const { value, done } = await reader.read();
         if (done) break;
         aiMsg += decoder.decode(value, { stream: true });
-        setMessages((msgs) => [
-          ...msgs.filter((m, i) => i !== msgs.length - 1 || m.role !== 'assistant'),
-          { role: 'assistant' as const, content: aiMsg },
-        ]);
+        setMessages((msgs) => {
+          // Replace last assistant message with updated content
+          const lastUserIdx = msgs.map(m => m.role).lastIndexOf('user');
+          return [
+            ...msgs.slice(0, lastUserIdx + 1),
+            { role: 'assistant', content: aiMsg },
+          ];
+        });
       }
+      setShowExpand(true);
       setLoading(false);
     } catch (e: any) {
       setError("Network error or server unavailable.");
@@ -81,6 +97,28 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
   };
   return (
     <div>
+      <div className="flex items-center gap-4 mb-2">
+        <label className="text-xs font-semibold">Mode:</label>
+        <Button
+          type="button"
+          variant={fastMode ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFastMode(true)}
+          aria-pressed={fastMode}
+        >
+          Fast
+        </Button>
+        <Button
+          type="button"
+          variant={!fastMode ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFastMode(false)}
+          aria-pressed={!fastMode}
+        >
+          Deep
+        </Button>
+        {isCached && <span className="ml-2 px-2 py-1 text-xs bg-muted text-muted-foreground rounded">cached</span>}
+      </div>
       <div
         ref={chatRef}
         className="mb-4 p-4 bg-card text-card-foreground rounded-lg h-64 overflow-y-auto border border-border shadow-sm"
@@ -94,7 +132,7 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
         {messages.map((m, i) => (
           <div key={i} className={m.role === 'user' ? "text-right mb-2" : "text-left mb-2"}>
             <span className={m.role === 'user' ? "inline-block bg-primary text-primary-foreground px-3 py-2 rounded-lg" : "inline-block bg-muted text-muted-foreground px-3 py-2 rounded-lg border border-border"}>
-              {m.content}
+              {m.content || (m.role === 'assistant' && loading ? <span className="opacity-60">Typing…</span> : null)}
             </span>
           </div>
         ))}
@@ -128,6 +166,13 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
           {loading ? "..." : "Send"}
         </Button>
       </form>
+      {showExpand && !loading && (
+        <div className="mt-2 text-center">
+          <Button type="button" size="sm" variant="outline" onClick={() => sendMessage("Continue", true)}>
+            Expand answer
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { prisma } from './db';
+import { prisma } from './prisma';
 
 export async function createPersonalOrgForUser(userId: string, name: string) {
   return prisma.organization.create({

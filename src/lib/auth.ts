@@ -1,5 +1,5 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { prisma } from './db';
+import { prisma } from './prisma';
 import { redirect } from 'next/navigation';
 
 export async function getCurrentUser() {
