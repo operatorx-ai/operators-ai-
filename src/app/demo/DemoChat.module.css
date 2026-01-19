@@ -1,0 +1,9 @@
+/* DemoChat error message styling */
+.demo-chat-error {
+  margin-top: 1rem;
+  color: red;
+}
+
+.chat-history {
+  min-height: 200px;
+}

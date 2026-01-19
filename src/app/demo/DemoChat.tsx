@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import styles from "./DemoChat.module.css";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
@@ -97,8 +98,7 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
   };
   return (
     <div>
-      <div className="flex items-center gap-4 mb-2">
-        <label className="text-xs font-semibold">Mode:</label>
+      <div className="mb-4 flex gap-2">
         <Button
           type="button"
           variant={fastMode ? "default" : "outline"}
@@ -121,8 +121,7 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
       </div>
       <div
         ref={chatRef}
-        className="mb-4 p-4 bg-card text-card-foreground rounded-lg h-64 overflow-y-auto border border-border shadow-sm"
-        style={{ minHeight: 200 }}
+        className={"mb-4 p-4 bg-card text-card-foreground rounded-lg h-64 overflow-y-auto border border-border shadow-sm " + styles["chat-history"]}
         tabIndex={0}
         aria-label="Chat history"
       >
@@ -138,7 +137,7 @@ export default function DemoChat({ mode, quickInput, setQuickInput, agentId }: D
         ))}
       </div>
       {error && (
-        <div className="mb-4 p-3 bg-red-900/80 text-red-200 rounded border border-red-700 text-sm">
+        <div className={styles["demo-chat-error"] + " mb-4 p-3 bg-red-900/80 text-red-200 rounded border border-red-700 text-sm"}>
           <div>{error}</div>
           <div className="mt-2 text-xs text-red-300">
             To fix: Set <span className="font-mono">OPENAI_API_KEY</span> in <span className="font-mono">.env.local</span> and restart <span className="font-mono">npm run dev</span>.<br />
