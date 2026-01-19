@@ -2,9 +2,9 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { agents } from "@/config/agents";
-// Simple in-memory LRU cache for dev/demo
-const LRU = require('lru-cache');
-const cache = new LRU({ max: 100, ttl: 1000 * 60 * 60 * 6 }); // 6h TTL
+// Simple in-memory cache for Edge runtime (Map, not LRU)
+const cache = new Map();
+const CACHE_TTL = 1000 * 60 * 60 * 6; // 6h
 
 const chatSchema = z.object({
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]).default("user"), content: z.string().min(1).max(2000) })),
@@ -17,7 +17,7 @@ const chatSchema = z.object({
 const RATE_LIMIT = 5; // 5 requests per minute per IP (simple in-memory, for demo)
 const rateLimitMap = new Map<string, { count: number; last: number }>();
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "unknown";
@@ -49,13 +49,18 @@ export async function POST(req: NextRequest) {
     : null;
   if (isQuickAction && cache.has(cacheKey)) {
     const cached = cache.get(cacheKey);
-    return new Response(cached.body, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "X-Cached": "1",
-        "Cache-Control": "no-cache"
-      }
-    });
+    // Check TTL
+    if (Date.now() - cached.ts < CACHE_TTL) {
+      return new Response(cached.body, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "X-Cached": "1",
+          "Cache-Control": "no-cache"
+        }
+      });
+    } else {
+      cache.delete(cacheKey);
+    }
   }
 
   // --- OpenAI streaming ---
@@ -109,29 +114,33 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: "No response from OpenAI" }), { status: 500 });
   }
 
-  // Stream OpenAI response to client, and cache if quick action
-  const stream = response.body;
+  // For quick actions, buffer the Web ReadableStream and cache the result
   if (isQuickAction) {
-    // Buffer the stream for cache, but also stream to client
-    const { PassThrough } = require('stream');
-    const pt = new PassThrough();
-    const chunks: Buffer[] = [];
-    stream.on('data', (chunk: Buffer) => {
-      pt.write(chunk);
-      chunks.push(chunk);
-    });
-    stream.on('end', () => {
-      pt.end();
-      cache.set(cacheKey, { body: Buffer.concat(chunks) });
-    });
-    return new Response(pt, {
+    const reader = response.body.getReader();
+    const chunks = [];
+    let done = false;
+    while (!done) {
+      const { value, done: d } = await reader.read();
+      if (value) chunks.push(value);
+      done = d;
+    }
+    const full = new Uint8Array(chunks.reduce((acc, cur) => acc + cur.length, 0));
+    let offset = 0;
+    for (const chunk of chunks) {
+      full.set(chunk, offset);
+      offset += chunk.length;
+    }
+    cache.set(cacheKey, { body: full, ts: Date.now() });
+    return new Response(full, {
       headers: {
         "Content-Type": "text/event-stream",
+        "X-Cached": "1",
         "Cache-Control": "no-cache"
       }
     });
   }
-  return new Response(stream, {
+  // Otherwise, just stream through
+  return new Response(response.body, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache"

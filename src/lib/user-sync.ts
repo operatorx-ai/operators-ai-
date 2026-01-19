@@ -2,7 +2,7 @@ import { prisma } from './prisma';
 import { auth, currentUser } from '@clerk/nextjs/server';
 
 export async function syncUserAndOrg() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return null;
   let user = await prisma.user.findUnique({ where: { clerkUserId: userId } });
   if (!user) {

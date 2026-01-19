@@ -1,6 +1,6 @@
 // prisma/prisma.config.ts for Prisma 7+ connection URLs
 
-module.exports = {
+export default {
   datasource: {
     db: {
       url: process.env.DATABASE_URL,
