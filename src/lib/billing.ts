@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import * as Prisma from '@prisma/client';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const prisma = new PrismaClient();
+const prisma = new Prisma.PrismaClient();
 
 export async function createBillingSession(userId: string) {
   // Example: create a Stripe Checkout session and link to user in Prisma
