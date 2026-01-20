@@ -4,7 +4,7 @@ const PORT = 3000;
 const baseURL = `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: './e2e',
   use: {
     baseURL,
     trace: 'on-first-retry',

@@ -1,9 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const prisma = new PrismaClient();
 
@@ -22,17 +20,16 @@ export async function createBillingSession(userId: string) {
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
     client_reference_id: userId,
   });
-  await prisma.user.update({
-    where: { id: userId },
-    data: { stripeSessionId: session.id },
-  });
+  // Optionally persist session.id to your DB (Billing model) if needed.
   return session.url;
 }
 
 export async function getBillingInfo(userId: string) {
-  // Example: fetch billing info from Stripe and Prisma
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user?.stripeCustomerId) return null;
-  const customer = await stripe.customers.retrieve(user.stripeCustomerId);
+  // Fetch billing info via the user's membership -> organization -> Billing record
+  const membership = await prisma.membership.findFirst({ where: { userId } });
+  if (!membership) return null;
+  const billing = await prisma.billing.findUnique({ where: { orgId: membership.orgId } });
+  if (!billing?.stripeCustomerId) return null;
+  const customer = await stripe.customers.retrieve(billing.stripeCustomerId);
   return customer;
 }
