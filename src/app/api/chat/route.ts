@@ -2,6 +2,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { agents } from "@/config/agents";
+import { assessDecision } from "@/lib/decision-maker";
 // Simple in-memory cache for Edge runtime (Map, not LRU)
 const cache = new Map();
 const CACHE_TTL = 1000 * 60 * 60 * 6; // 6h
@@ -78,10 +79,12 @@ export async function POST(req: NextRequest) {
 
   let systemPrompt =
     "You are Operators-AI. Always require human approval. Never give legal advice. Respond with clear, actionable steps and note that outputs are suggestions only.";
+  // keep agent available for decision heuristics
+  let agentObj = null;
   if (body.mode === "agent" && body.agentId) {
-    const agent = agents.find(a => a.id === body.agentId);
-    if (agent) {
-      systemPrompt = agent.systemPrompt;
+    agentObj = agents.find(a => a.id === body.agentId) || null;
+    if (agentObj) {
+      systemPrompt = agentObj.systemPrompt;
     }
   }
   // Enforce concise style for fast mode
@@ -92,6 +95,9 @@ export async function POST(req: NextRequest) {
     { role: "system", content: systemPrompt },
     ...body.messages
   ];
+
+  // Assess a suggested decision + confidence to help surface if human approval is needed
+  const decision = assessDecision(body.messages, agentObj);
 
   // Privacy-first: do not store chat logs by default. TODO: add opt-in logging hook here.
 
@@ -113,19 +119,25 @@ export async function POST(req: NextRequest) {
   if (!response.body) {
     return new Response(JSON.stringify({ error: "No response from OpenAI" }), { status: 500 });
   }
+  // Build a small SSE decision event to prepend to the stream
+  const encoder = new TextEncoder();
+  const decisionEvent = `event: decision\ndata: ${JSON.stringify(decision)}\n\n`;
 
-  // For quick actions, buffer the Web ReadableStream and cache the result
+  // For quick actions, buffer the Web ReadableStream and cache the result (with decision event prefixed)
   if (isQuickAction) {
     const reader = response.body.getReader();
-    const chunks = [];
+    const chunks: Uint8Array[] = [];
     let done = false;
     while (!done) {
       const { value, done: d } = await reader.read();
       if (value) chunks.push(value);
       done = d;
     }
-    const full = new Uint8Array(chunks.reduce((acc, cur) => acc + cur.length, 0));
-    let offset = 0;
+    const totalLen = chunks.reduce((acc, cur) => acc + cur.length, 0);
+    const decisionBytes = encoder.encode(decisionEvent);
+    const full = new Uint8Array(decisionBytes.length + totalLen);
+    full.set(decisionBytes, 0);
+    let offset = decisionBytes.length;
     for (const chunk of chunks) {
       full.set(chunk, offset);
       offset += chunk.length;
@@ -139,8 +151,28 @@ export async function POST(req: NextRequest) {
       }
     });
   }
-  // Otherwise, just stream through
-  return new Response(response.body, {
+
+  // Stream: create a new ReadableStream that first emits the decision event, then pipes OpenAI chunks
+  const stream = new ReadableStream({
+    async start(controller) {
+      // enqueue decision event
+      controller.enqueue(encoder.encode(decisionEvent));
+      const reader = response.body!.getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) controller.enqueue(value);
+        }
+      } catch (err) {
+        controller.error(err);
+      } finally {
+        controller.close();
+      }
+    }
+  });
+
+  return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache"

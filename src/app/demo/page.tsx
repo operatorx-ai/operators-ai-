@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 const DemoChat = dynamic(() => import("./DemoChat"), { ssr: false });
+const DecisionSSEDemo = dynamic(() => import("@/components/DecisionSSEDemo"), { ssr: false });
 import { DemoSignUpCTA } from "./DemoSignUpCTA";
 
 const quickActions = [
@@ -91,6 +92,9 @@ export default function DemoPage() {
           setQuickInput={setQuickInput}
           agentId={mode === "agent" ? selectedAgentId : undefined}
         />
+        <div className="mt-4">
+          <DecisionSSEDemo defaultAgentId={mode === "agent" ? selectedAgentId : undefined} />
+        </div>
         <DemoSignUpCTA />
       </Card>
     </main>
